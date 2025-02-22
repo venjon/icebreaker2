@@ -1,0 +1,26 @@
+beautifulsoup4==4.13.3
+certifi==2025.1.31
+charset-normalizer==3.4.1
+idna==3.10
+linkedin-api==2.3.1
+lxml==5.3.1
+requests==2.32.3
+soupsieve==2.6
+typing_extensions==4.12.2
+urllib3==2.3.0
+
+
+# terminal commands to activate the virtual environment
+# source venv/bin/activate
+# deactivate
+
+# for teammates
+#python -m venv .venv
+# Activate the environment (using commands from step 1)
+#pip install -r requirements.txt
+
+# terminal commands to install the requirements
+# pip install -r requirements.txt
+
+# to save dependencies
+# pip freeze > requirements.txt
