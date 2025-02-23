@@ -58,7 +58,7 @@ print(f"\nNumber of results: {len(people)}")"""
 # Try a simple keyword search with private profiles included
 people = api.search_people(
     keywords="software engineer",
-    network_depths=["O"],
+    network_depths=["F", "S", "O"],
     include_private_profiles=True
 )
 
