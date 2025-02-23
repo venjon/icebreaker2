@@ -4,6 +4,7 @@ import http.client
 import logging
 from linkedin_api import Linkedin
 import json
+import csv
 
 # Enable HTTP debugging
 http.client.HTTPConnection.debuglevel = 1
@@ -63,27 +64,44 @@ people = api.search_people(
 
 print(f"\nNumber of results: {len(people)}")
 
-# Print first 3 results with their contact info
-print("\nFirst 3 results with contact info:")
-for i, person in enumerate(people[:3]):
-    print(f"\nPerson {i + 1}:")
-    print(f"Name: {person.get('name', 'Unknown')}")
+# Prepare CSV file
+with open('linkedin_results.csv', 'w', newline='', encoding='utf-8') as file:
+    writer = csv.writer(file)
+    # Write header
+    writer.writerow(['Name', 'Job Title', 'Location', 'Profile Type', 'URN ID', 
+                    'Full Name', 'Email', 'Phone Numbers', 'Websites'])
     
-    if person.get('urn_id'):
-        try:
-            # Get detailed profile
-            profile = api.get_profile(person['urn_id'])
-            # Get contact info using the same urn_id
-            contact_info = api.get_profile_contact_info(person['urn_id'])
-            
-            print("Profile data:")
-            print(f"Full Name: {profile.get('firstName', '')} {profile.get('lastName', '')}")
-            print(f"Contact Info: {json.dumps(contact_info, indent=2)}")
-        except Exception as e:
-            print(f"Couldn't get profile/contact data: {e}")
-    print("---")
+    # Write data for each person
+    for person in people:
+        name = person.get('name', 'Unknown')
+        job_title = person.get('jobtitle', 'Unknown')
+        location = person.get('location', 'Unknown')
+        profile_type = 'Private' if name == 'LinkedIn Member' else 'Public'
+        urn_id = person.get('urn_id', 'Unknown')
+        
+        # Default values for profile data
+        full_name = email = phone_numbers = websites = 'Not accessible'
+        
+        # Try to get additional info if profile is public
+        if profile_type == 'Public' and urn_id != 'Unknown':
+            try:
+                profile = api.get_profile(urn_id)
+                contact_info = api.get_profile_contact_info(urn_id)
+                
+                full_name = f"{profile.get('firstName', '')} {profile.get('lastName', '')}"
+                email = contact_info.get('email_address', 'Not available')
+                phone_numbers = ', '.join(contact_info.get('phone_numbers', [])) or 'Not available'
+                websites = ', '.join(contact_info.get('websites', [])) or 'Not available'
+            except Exception as e:
+                print(f"Couldn't get additional data for {name}: {e}")
+        
+        # Write row to CSV
+        writer.writerow([name, job_title, location, profile_type, urn_id, 
+                        full_name, email, phone_numbers, websites])
 
-# Print some statistics
+print(f"\nExported {len(people)} results to linkedin_results.csv")
+
+# Print statistics
 print("\nStatistics:")
 print(f"Total profiles: {len(people)}")
 print(f"Private profiles: {sum(1 for p in people if p['name'] == 'LinkedIn Member')}")
